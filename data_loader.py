@@ -7,6 +7,7 @@ import re
 import string
 import tensorlayer as tl
 from utils import *
+import json
 
 
 dataset = 'instagram' # or '102flowers'
@@ -15,10 +16,17 @@ need_256 = True # set to True for stackGAN
 nltk.download('punkt')
 
 cwd = os.getcwd()
-VOC_FIR = cwd + '/vocab.txt'
+VOC_FIR = cwd + '/' + dataset + '_vocab.txt'
 
+if os.path.isfile(VOC_FIR):
+    print("WARNING: vocab.txt already exists")
+
+img_dir = os.path.join(cwd, dataset)
+
+maxCaptionsPerImage = 1 # this will change depending on dataset.
 
 def processCaptionsFlowers():
+    maxCaptionsPerImage = 10
     caption_dir = os.path.join(cwd, 'text_c10')
 
     ## load captions
@@ -37,38 +45,87 @@ def processCaptionsFlowers():
                     line = preprocess_caption(line)
                     lines.append(line)
                     processed_capts.append(tl.nlp.process_sentence(line, start_word="<S>", end_word="</S>"))
-                assert len(lines) == 10, "Every flower image have 10 captions"
+                assert len(lines) == maxCaptionsPerImage, "Every flower image have 10 captions"
                 captions_dict[key] = lines
     print(" * %d x %d captions found " % (len(captions_dict), len(lines)))
 
     ## build vocab
-    if not os.path.isfile('vocab.txt'):
+    if not os.path.isfile(VOC_FIR):
         _ = tl.nlp.create_vocab(processed_capts, word_counts_output_file=VOC_FIR, min_word_count=1)
-    else:
-        print("WARNING: vocab.txt already exists")
 
-    return captions_dict
+    ## load images
+    with tl.ops.suppress_stdout():  # get image files list
+        imgs_title_list = sorted(tl.files.load_file_list(path=img_dir, regx='^image_[0-9]+\.jpg'))
+
+    return captions_dict, imgs_title_list
+
+def processCaptionsInstagram():
+    maxCaptionsPerImage = 1
+    caption_dir = os.path.join(cwd, dataset)
+
+    ## load captions
+    captions_dict = {}
+    processed_capts = []
+    key = 0 # this is the index of the image files in imgs_title_list, matched with the key of the captions_dict. make sure you sort so they match.
+    with tl.ops.suppress_stdout():
+        files = sorted(tl.files.load_file_list(path=caption_dir, regx='^.+\.json'))
+        for i, f in enumerate(files):
+            print f
+            file_dir = os.path.join(caption_dir, f)
+            t = open(file_dir,'r')
+            metadata = json.load(t)
+
+            lines = []
+            for edge in metadata["edge_media_to_caption"]["edges"]:
+                if len(lines) >= maxCaptionsPerImage:
+                    break
+
+                caption = edge["node"]["text"].encode('utf-8', 'xmlcharrefreplace')
+                #print caption
+                line = preprocess_caption(caption.lower())
+                #print line
+                lines.append(line)
+                processed_capts.append(tl.nlp.process_sentence(line, start_word="<S>", end_word="</S>"))
+            # TODO(tyler): does it have to have 10 lines???
+            assert len(lines) == maxCaptionsPerImage, "Every image must have " + maxCaptionsPerImage + " captions"
+            captions_dict[key] = lines
+            key += 1
+    print(" * %d x %d captions found " % (len(captions_dict), len(lines)))
+
+    ## build vocab
+    if not os.path.isfile(VOC_FIR):
+        _ = tl.nlp.create_vocab(processed_capts, word_counts_output_file=VOC_FIR, min_word_count=1)
+
+
+    ## load images. note that these indexes must match up with the keys of captions_dict: i.e. they should be sorted in the same order.
+    with tl.ops.suppress_stdout():  # get image files list
+        imgs_title_list = sorted(tl.files.load_file_list(path=img_dir, regx='^.+\.jpg'))
+
+    for i in 0, 1, 7, 34, 60:
+        print "Spot check: %s should match with %s" % (captions_dict[i], imgs_title_list[i])
+
+    return captions_dict, imgs_title_list
 
 
 
 
+imgs_title_list = False
 captions_dict = False
 if dataset == '102flowers':
     """
     images.shape = [8000, 64, 64, 3]
     captions_ids = [80000, any]
     """
-    captions_dict = processCaptionsFlowers()
-else if dataset == 'instagram':
-    captions_dict = processCaptionsInstagram()
+    captions_dict, imgs_title_list = processCaptionsFlowers()
+elif dataset == 'instagram':
+    captions_dict, imgs_title_list = processCaptionsInstagram()
 
 
 
 if not os.path.isfile(VOC_FIR) or not captions_dict: 
-    print("ERROR: vocab.txt not generated.")
+    print("ERROR: vocab not generated.")
     exit(1)
 else:
-    img_dir = os.path.join(cwd, dataset)
     vocab = tl.nlp.Vocabulary(VOC_FIR, start_word="<S>", end_word="</S>", unk_word="<UNK>")
 
     ## store all captions ids in list
@@ -87,16 +144,14 @@ else:
     print(" * tokenized %d captions" % len(captions_ids))
 
     ## check
-    img_capt = captions_dict[1][1]
+    #print captions_ids
+    img_capt = (captions_dict.items()[1])[1][0]
     print("img_capt: %s" % img_capt)
     print("nltk.tokenize.word_tokenize(img_capt): %s" % nltk.tokenize.word_tokenize(img_capt))
     img_capt_ids = [vocab.word_to_id(word) for word in nltk.tokenize.word_tokenize(img_capt)]#img_capt.split(' ')]
     print("img_capt_ids: %s" % img_capt_ids)
     print("id_to_word: %s" % [vocab.id_to_word(id) for id in img_capt_ids])
 
-    ## load images
-    with tl.ops.suppress_stdout():  # get image files list
-        imgs_title_list = sorted(tl.files.load_file_list(path=img_dir, regx='^image_[0-9]+\.jpg'))
     print(" * %d images found, start loading and resizing ..." % len(imgs_title_list))
     s = time.time()
 
@@ -126,7 +181,7 @@ else:
 
     n_images = len(captions_dict)
     n_captions = len(captions_ids)
-    n_captions_per_image = len(lines) # 10
+    n_captions_per_image = maxCaptionsPerImage #len(lines) # 10
 
     print("n_captions: %d n_images: %d n_captions_per_image: %d" % (n_captions, n_images, n_captions_per_image))
 

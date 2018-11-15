@@ -139,14 +139,14 @@ def main_train():
     sample_seed = np.random.normal(loc=0.0, scale=1.0, size=(sample_size, z_dim)).astype(np.float32)
         # sample_seed = np.random.uniform(low=-1, high=1, size=(sample_size, z_dim)).astype(np.float32)]
     n = int(sample_size / ni)
-    sample_sentence = ["the flower shown has yellow anther red pistil and bright red petals."] * n + \
-                      ["this flower has petals that are yellow, white and purple and has dark lines"] * n + \
-                      ["the petals on this flower are white with a yellow center"] * n + \
-                      ["this flower has a lot of small round pink petals."] * n + \
-                      ["this flower is orange in color, and has petals that are ruffled and rounded."] * n + \
-                      ["the flower has yellow petals and the center of it is brown."] * n + \
-                      ["this flower has petals that are blue and white."] * n +\
-                      ["these white flowers have petals that start off white in color and end in a white towards the tips."] * n
+    sample_sentence = ["halloween landscape."] * n + \
+                      ["iceland sunset"] * n + \
+                      ["sunset on muni"] * n + \
+                      ["flowers sunset longexposure"] * n + \
+                      ["stars hypercolor beautiful"] * n + \
+                      ["Commissioned this wizard portrait from the talented @pikiooo . If you need any wizarding done, let me know. If you need any drawing done, let her know"] * n + \
+                      ["truckee river sunset"] * n +\
+                      ["Swedish Farm. #ir #hypercolor #infrared #panorama #moon #farm"] * n
 
     # sample_sentence = captions_ids_test[0:sample_size]
     for i, sentence in enumerate(sample_sentence):
