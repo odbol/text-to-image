@@ -9,20 +9,17 @@ import tensorlayer as tl
 from utils import *
 
 
-dataset = '102flowers' #
+dataset = 'instagram' # or '102flowers'
 need_256 = True # set to True for stackGAN
 
 nltk.download('punkt')
 
-if dataset == '102flowers':
-    """
-    images.shape = [8000, 64, 64, 3]
-    captions_ids = [80000, any]
-    """
-    cwd = os.getcwd()
-    img_dir = os.path.join(cwd, '102flowers')
+cwd = os.getcwd()
+VOC_FIR = cwd + '/vocab.txt'
+
+
+def processCaptionsFlowers():
     caption_dir = os.path.join(cwd, 'text_c10')
-    VOC_FIR = cwd + '/vocab.txt'
 
     ## load captions
     caption_sub_dir = load_folder_list( caption_dir )
@@ -49,6 +46,29 @@ if dataset == '102flowers':
         _ = tl.nlp.create_vocab(processed_capts, word_counts_output_file=VOC_FIR, min_word_count=1)
     else:
         print("WARNING: vocab.txt already exists")
+
+    return captions_dict
+
+
+
+
+captions_dict = False
+if dataset == '102flowers':
+    """
+    images.shape = [8000, 64, 64, 3]
+    captions_ids = [80000, any]
+    """
+    captions_dict = processCaptionsFlowers()
+else if dataset == 'instagram':
+    captions_dict = processCaptionsInstagram()
+
+
+
+if not os.path.isfile(VOC_FIR) or not captions_dict: 
+    print("ERROR: vocab.txt not generated.")
+    exit(1)
+else:
+    img_dir = os.path.join(cwd, dataset)
     vocab = tl.nlp.Vocabulary(VOC_FIR, start_word="<S>", end_word="</S>", unk_word="<UNK>")
 
     ## store all captions ids in list

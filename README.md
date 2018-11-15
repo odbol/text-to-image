@@ -53,6 +53,16 @@ python downloads.py
 </a>
 
 
+# Training on Instagram
+
+Download your instagram photos with [Instalooter](https://github.com/althonos/InstaLooter):
+
+`pip install --user instalooter --pre`
+`mkdir instagram`
+`instaLooter user odbol -d instagram`
+
+
+
 ## License
 Apache 2.0
 
