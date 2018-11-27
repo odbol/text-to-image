@@ -9,3 +9,9 @@ backup/
 .DS_Store
 ._*
 train_txt2im_wrong_image.py
+
+/instagram
+/material-icons
+/product-logos
+/*_checkpoint
+/*_samples
