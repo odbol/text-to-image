@@ -124,10 +124,17 @@ def processCaptionsMaterialIcons():
             continue
         with tl.ops.suppress_stdout():
             files = sorted(tl.files.load_file_list(path=sub_dir, regx='^.+black_48dp\.png'))
-            for i, f in enumerate(files):
+            for i, orig_file in enumerate(files):
                 print f
 
-                caption = f.replace("ic_", "").replace("_", " ")[:-15] # strip off extension, dp, and color
+                # convert png using imagemagick, removing transparency channel and replacing with black.
+                f = orig_file.replace(".png", "-FLATTENED.png")
+                svgPath = os.path.join(sub_dir, orig_file)
+                filePath = os.path.join(sub_dir, f)
+                if not os.path.exists(filePath): 
+                    subprocess.check_call(["convert", "-background", "black", "-alpha", "remove", "-flatten", "-alpha", "off", svgPath, filePath])
+
+                caption = orig_file.replace("ic_", "").replace("_", " ")[:-15] # strip off extension, dp, and color
                 #print caption
                 caption_processed = preprocess_caption(caption.lower())
                 lines = [caption_processed, category_dir]
@@ -137,8 +144,8 @@ def processCaptionsMaterialIcons():
                 # TODO(tyler): does it have to have 10 lines???
                 assert len(lines) == maxCaptionsPerImage, "Every image must have " + maxCaptionsPerImage + " captions"
                 captions_dict[key] = lines
-                imgs_title_list.append(os.path.join(sub_dir, f))
-                
+                imgs_title_list.append(filePath)
+
                 key += 1
     print(" * %d x %d captions found " % (len(captions_dict), len(lines)))
 
@@ -158,7 +165,7 @@ def processCaptionsProductLogos():
     maxCaptionsPerImage = 1
     caption_dir = os.path.join(cwd, dataset)
 
-    extRegExToStrip = r'_\d+px\.svg'
+    extRegExToStrip = r'\d+px\.svg'
 
     ## load captions
     catagories_sub_dirs = load_folder_list( caption_dir )
@@ -172,13 +179,12 @@ def processCaptionsProductLogos():
             for i, svg_file in enumerate(files):
                 print svg_file
 
+                # convert svg to png using imagemagick, removing transparency channel and replacing with black.
                 f = svg_file.replace(".svg", ".png")
                 svgPath = os.path.join(sub_dir, svg_file)
                 filePath = os.path.join(sub_dir, f)
-
-                # convert svg to png using imagemagick
                 if not os.path.exists(filePath): 
-                    subprocess.check_call(["convert", "-background", "none", svgPath, filePath])
+                    subprocess.check_call(["convert", "-background", "black", "-alpha", "remove", "-flatten", "-alpha", "off", svgPath, filePath])
 
                 caption = svg_file.replace("_", " ")
                 caption = re.sub(extRegExToStrip, '', caption)
@@ -194,6 +200,9 @@ def processCaptionsProductLogos():
                 imgs_title_list.append(filePath)
 
                 key += 1
+
+                # don't bother with the other sizes
+                break
     print(" * %d x %d captions found " % (len(captions_dict), len(lines)))
 
     ## build vocab
@@ -270,7 +279,7 @@ else:
     images_256 = []
     for name in imgs_title_list:
         # print(name)
-        img_raw = scipy.misc.imread( os.path.join(img_dir, name) )
+        img_raw = scipy.misc.imread( os.path.join(img_dir, name), False, 'RGB' ) #Force to RGB in case we're opening images with transparency
         img = tl.prepro.imresize(img_raw, size=[64, 64])    # (64, 64, 3)
         img = img.astype(np.float32)
         images.append(img)
