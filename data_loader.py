@@ -57,7 +57,7 @@ def processCaptionsFlowers():
     with tl.ops.suppress_stdout():  # get image files list
         imgs_title_list = sorted(tl.files.load_file_list(path=img_dir, regx='^image_[0-9]+\.jpg'))
 
-    return captions_dict, imgs_title_list
+    return captions_dict, imgs_title_list, maxCaptionsPerImage
 
 def processCaptionsInstagram():
     maxCaptionsPerImage = 1
@@ -104,7 +104,7 @@ def processCaptionsInstagram():
     for i in 0, 1, 7, 34, 60:
         print "Spot check: %s should match with %s" % (captions_dict[i], imgs_title_list[i])
 
-    return captions_dict, imgs_title_list
+    return captions_dict, imgs_title_list, maxCaptionsPerImage
 
 
 def processCaptionsMaterialIcons():
@@ -123,9 +123,8 @@ def processCaptionsMaterialIcons():
         if not os.path.exists(sub_dir):
             continue
         with tl.ops.suppress_stdout():
-            files = sorted(tl.files.load_file_list(path=sub_dir, regx='^.+black_48dp\.png'))
+            files = sorted(tl.files.load_file_list(path=sub_dir, regx='^.+white_48dp\.png'))
             for i, orig_file in enumerate(files):
-                print f
 
                 # convert png using imagemagick, removing transparency channel and replacing with black.
                 f = orig_file.replace(".png", "-FLATTENED.png")
@@ -157,7 +156,7 @@ def processCaptionsMaterialIcons():
     for i in 0, 1, 7, 34, 60:
         print "Spot check: %s should match with %s" % (captions_dict[i], imgs_title_list[i])
 
-    return captions_dict, imgs_title_list
+    return captions_dict, imgs_title_list, maxCaptionsPerImage
 
 
 
@@ -213,7 +212,7 @@ def processCaptionsProductLogos():
     for i in 0, 1, 7, 34, 60:
         print "Spot check: %s should match with %s" % (captions_dict[i], imgs_title_list[i])
 
-    return captions_dict, imgs_title_list
+    return captions_dict, imgs_title_list, maxCaptionsPerImage
 
 
 
@@ -225,13 +224,13 @@ if dataset == '102flowers':
     images.shape = [8000, 64, 64, 3]
     captions_ids = [80000, any]
     """
-    captions_dict, imgs_title_list = processCaptionsFlowers()
+    captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsFlowers()
 elif dataset == 'instagram':
-    captions_dict, imgs_title_list = processCaptionsInstagram()
+    captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsInstagram()
 elif dataset == 'material-icons':
-    captions_dict, imgs_title_list = processCaptionsMaterialIcons()
+    captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsMaterialIcons()
 elif dataset == 'product-logos':
-    captions_dict, imgs_title_list = processCaptionsProductLogos()
+    captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsProductLogos()
 
 
 
