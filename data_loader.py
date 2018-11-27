@@ -8,9 +8,9 @@ import string
 import tensorlayer as tl
 from utils import *
 import json
+import subprocess
 
-
-dataset = 'instagram'#'material-icons' # or '102flowers' or 'instagram'
+dataset = 'product-logos'#'material-icons' # or '102flowers' or 'instagram'
 need_256 = True # set to True for stackGAN
 
 nltk.download('punkt')
@@ -154,6 +154,60 @@ def processCaptionsMaterialIcons():
 
 
 
+def processCaptionsProductLogos():
+    maxCaptionsPerImage = 1
+    caption_dir = os.path.join(cwd, dataset)
+
+    extRegExToStrip = r'_\d+px\.svg'
+
+    ## load captions
+    catagories_sub_dirs = load_folder_list( caption_dir )
+    captions_dict = {}
+    processed_capts = []
+    imgs_title_list = []
+    key = 0 # this is the index of the image files in imgs_title_list, matched with the key of the captions_dict. make sure you sort so they match.
+    for sub_dir in catagories_sub_dirs:
+        with tl.ops.suppress_stdout():
+            files = sorted(tl.files.load_file_list(path=sub_dir, regx='^.+' + extRegExToStrip))
+            for i, svg_file in enumerate(files):
+                print svg_file
+
+                f = svg_file.replace(".svg", ".png")
+                svgPath = os.path.join(sub_dir, svg_file)
+                filePath = os.path.join(sub_dir, f)
+
+                # convert svg to png using imagemagick
+                if not os.path.exists(filePath): 
+                    subprocess.check_call(["convert", "-background", "none", svgPath, filePath])
+
+                caption = svg_file.replace("_", " ")
+                caption = re.sub(extRegExToStrip, '', caption)
+                #print caption
+                caption_processed = preprocess_caption(caption.lower())
+                lines = [caption_processed]
+                for line in lines:
+                    processed_capts.append(tl.nlp.process_sentence(line, start_word="<S>", end_word="</S>"))
+                    
+                # TODO(tyler): does it have to have 10 lines???
+                assert len(lines) == maxCaptionsPerImage, "Every image must have " + maxCaptionsPerImage + " captions"
+                captions_dict[key] = lines
+                imgs_title_list.append(filePath)
+
+                key += 1
+    print(" * %d x %d captions found " % (len(captions_dict), len(lines)))
+
+    ## build vocab
+    if not os.path.isfile(VOC_FIR):
+        _ = tl.nlp.create_vocab(processed_capts, word_counts_output_file=VOC_FIR, min_word_count=1)
+
+
+    for i in 0, 1, 7, 34, 60:
+        print "Spot check: %s should match with %s" % (captions_dict[i], imgs_title_list[i])
+
+    return captions_dict, imgs_title_list
+
+
+
 
 imgs_title_list = False
 captions_dict = False
@@ -167,6 +221,8 @@ elif dataset == 'instagram':
     captions_dict, imgs_title_list = processCaptionsInstagram()
 elif dataset == 'material-icons':
     captions_dict, imgs_title_list = processCaptionsMaterialIcons()
+elif dataset == 'product-logos':
+    captions_dict, imgs_title_list = processCaptionsProductLogos()
 
 
 
