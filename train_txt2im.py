@@ -39,14 +39,17 @@ images_test = np.array(images_test)
 # print(n_captions_train, n_captions_test)
 # exit()
 
+save_dir = dataset + "_checkpoint"
+samples_dir = dataset + "_samples"
+
 ni = int(np.ceil(np.sqrt(batch_size)))
-# os.system("mkdir samples")
-# os.system("mkdir samples/step1_gan-cls")
+# os.system("mkdir samples_dir)
+# os.system("mkdir samples_dir + "/step1_gan-cls")
 # os.system("mkdir checkpoint")
-tl.files.exists_or_mkdir("samples/step1_gan-cls")
-tl.files.exists_or_mkdir("samples/step_pretrain_encoder")
-tl.files.exists_or_mkdir("checkpoint")
-save_dir = "checkpoint"
+tl.files.exists_or_mkdir(samples_dir + "/step1_gan-cls")
+tl.files.exists_or_mkdir(samples_dir + "/step_pretrain_encoder")
+tl.files.exists_or_mkdir(save_dir)
+
 
 
 def main_train():
@@ -151,6 +154,15 @@ def main_train():
                           ["Commissioned this wizard portrait from the talented @pikiooo . If you need any wizarding done, let me know. If you need any drawing done, let her know"] * n + \
                           ["truckee river sunset"] * n +\
                           ["Swedish Farm. #ir #hypercolor #infrared #panorama #moon #farm"] * n
+    elif dataset == 'material-icons':
+        sample_sentence = ["call end"] * n + \
+                          ["call"] * n + \
+                          ["chat"] * n + \
+                          ["contact"] * n + \
+                          ["device phone"] * n + \
+                          ["photo blur"] * n + \
+                          ["child"] * n +\
+                          ["wifi"] * n
     elif dataset == 'product-logos':
         sample_sentence = ["android"] * n + \
                           ["play youtube"] * n + \
@@ -197,7 +209,7 @@ def main_train():
             b_real_caption = tl.prepro.pad_sequences(b_real_caption, padding='post')
             ## get real image
             b_real_images = images_train[np.floor(np.asarray(idexs).astype('float')/n_captions_per_image).astype('int')]
-            # save_images(b_real_images, [ni, ni], 'samples/step1_gan-cls/train_00.png')
+            # save_images(b_real_images, [ni, ni], samples_dir + '/step1_gan-cls/train_00.png')
             ## get wrong caption
             idexs = get_random_int(min=0, max=n_captions_train-1, number=batch_size)
             b_wrong_caption = captions_ids_train[idexs]
@@ -243,7 +255,7 @@ def main_train():
                                         t_z : sample_seed})
 
             # img_gen = threading_data(img_gen, prepro_img, mode='rescale')
-            save_images(img_gen, [ni, ni], 'samples/step1_gan-cls/train_{:02d}.png'.format(epoch))
+            save_images(img_gen, [ni, ni], samples_dir + '/step1_gan-cls/train_{:02d}.png'.format(epoch))
 
         ## save model
         if (epoch != 0) and (epoch % 10) == 0:
@@ -316,7 +328,7 @@ def main_train():
 #     # print(sample_image.shape, np.min(sample_image), np.max(sample_image), image_size)
 #     # exit()
 #     sample_image = threading_data(sample_image, prepro_img, mode='translation')    # central crop first
-#     save_images(sample_image, [ni, ni], 'samples/step_pretrain_encoder/train__x.png')
+#     save_images(sample_image, [ni, ni], samples_dir + '/step_pretrain_encoder/train__x.png')
 #
 #
 #     n_epoch = 160 * 100
@@ -371,7 +383,7 @@ def main_train():
 #                                         t_real_caption : sample_sentence,
 #                                         t_real_image : sample_image,})
 #             img_gen = threading_data(img_gen, imresize, size=[64, 64], interp='bilinear')
-#             save_images(img_gen, [ni, ni], 'samples/step_pretrain_encoder/train_{:02d}_g(e(x))).png'.format(epoch))
+#             save_images(img_gen, [ni, ni], samples_dir + '/step_pretrain_encoder/train_{:02d}_g(e(x))).png'.format(epoch))
 #
 #         if (epoch != 0) and (epoch % 5) == 0:
 #             tl.files.save_npz(net_encoder.all_params, name=net_encoder_name, sess=sess)
@@ -426,7 +438,7 @@ def main_train():
 #         # images[i+7] = images_train[275]
 #     # sample_sentence = captions_ids_test[idexs]
 #     images = threading_data(images, prepro_img, mode='translation')
-#     save_images(images, [ni, ni], 'samples/translation/_reed_method_ori.png')
+#     save_images(images, [ni, ni], samples_dir + '/translation/_reed_method_ori.png')
 #
 #     # all done
 #     sample_sentence = ["This small bird has a blue crown and white belly."] * ni + \
@@ -452,7 +464,7 @@ def main_train():
 #                                     t_real_image : images,
 #                                     })
 #
-#         save_images(img_trans, [ni, ni], 'samples/translation/_reed_method_tran%d.png' % i)
+#         save_images(img_trans, [ni, ni], samples_dir + '/translation/_reed_method_tran%d.png' % i)
 #         print("completed %s" % i)
 
 if __name__ == '__main__':
