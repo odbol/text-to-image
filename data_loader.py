@@ -296,12 +296,15 @@ else:
     n_captions = len(captions_ids)
     n_captions_per_image = maxCaptionsPerImage #len(lines) # 10
 
+    # take a small percentage for testing set
+    num_in_training_set = int(n_images * 0.80)
+
     print("n_captions: %d n_images: %d n_captions_per_image: %d" % (n_captions, n_images, n_captions_per_image))
 
-    captions_ids_train, captions_ids_test = captions_ids[: 8000*n_captions_per_image], captions_ids[8000*n_captions_per_image :]
-    images_train, images_test = images[:8000], images[8000:]
+    captions_ids_train, captions_ids_test = captions_ids[: num_in_training_set*n_captions_per_image], captions_ids[num_in_training_set*n_captions_per_image :]
+    images_train, images_test = images[:num_in_training_set], images[num_in_training_set:]
     if need_256:
-        images_train_256, images_test_256 = images_256[:8000], images_256[8000:]
+        images_train_256, images_test_256 = images_256[:num_in_training_set], images_256[num_in_training_set:]
     n_images_train = len(images_train)
     n_images_test = len(images_test)
     n_captions_train = len(captions_ids_train)
@@ -351,6 +354,7 @@ def save_all(targets, file):
     with open(file, 'wb') as f:
         pickle.dump(targets, f)
 
+save_all(dataset, '_dataset.pickle')
 save_all(vocab, '_vocab.pickle')
 save_all((images_train_256, images_train), '_image_train.pickle')
 save_all((images_test_256, images_test), '_image_test.pickle')

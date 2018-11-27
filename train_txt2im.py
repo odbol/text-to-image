@@ -19,6 +19,8 @@ import model
 ###======================== PREPARE DATA ====================================###
 print("Loading data from pickle ...")
 import pickle
+with open("_dataset.pickle", 'rb') as f:
+    dataset = pickle.load(f)
 with open("_vocab.pickle", 'rb') as f:
     vocab = pickle.load(f)
 with open("_image_train.pickle", 'rb') as f:
@@ -139,14 +141,27 @@ def main_train():
     sample_seed = np.random.normal(loc=0.0, scale=1.0, size=(sample_size, z_dim)).astype(np.float32)
         # sample_seed = np.random.uniform(low=-1, high=1, size=(sample_size, z_dim)).astype(np.float32)]
     n = int(sample_size / ni)
-    sample_sentence = ["halloween landscape."] * n + \
-                      ["iceland sunset"] * n + \
-                      ["sunset on muni"] * n + \
-                      ["flowers sunset longexposure"] * n + \
-                      ["stars hypercolor beautiful"] * n + \
-                      ["Commissioned this wizard portrait from the talented @pikiooo . If you need any wizarding done, let me know. If you need any drawing done, let her know"] * n + \
-                      ["truckee river sunset"] * n +\
-                      ["Swedish Farm. #ir #hypercolor #infrared #panorama #moon #farm"] * n
+    sample_sentence = False
+    if dataset == 'instagram':
+        sample_sentence = ["halloween landscape."] * n + \
+                          ["iceland sunset"] * n + \
+                          ["sunset on muni"] * n + \
+                          ["flowers sunset longexposure"] * n + \
+                          ["stars hypercolor beautiful"] * n + \
+                          ["Commissioned this wizard portrait from the talented @pikiooo . If you need any wizarding done, let me know. If you need any drawing done, let her know"] * n + \
+                          ["truckee river sunset"] * n +\
+                          ["Swedish Farm. #ir #hypercolor #infrared #panorama #moon #farm"] * n
+    elif dataset == 'product-logos':
+        sample_sentence = ["android"] * n + \
+                          ["play youtube"] * n + \
+                          ["google"] * n + \
+                          ["cloud"] * n + \
+                          ["cloudy night"] * n + \
+                          ["mostly night"] * n + \
+                          ["play"] * n +\
+                          ["play scattered"] * n
+    else:
+        raise "No dataset specified"
 
     # sample_sentence = captions_ids_test[0:sample_size]
     for i, sentence in enumerate(sample_sentence):
