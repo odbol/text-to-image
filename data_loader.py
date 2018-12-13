@@ -10,6 +10,8 @@ from utils import *
 import json
 import subprocess
 
+MAX_IMAGES = 8000
+
 dataset = 'celebA'#'product-logos'#'material-icons' # or '102flowers' or 'instagram'
 need_256 = True # set to True for stackGAN
 
@@ -99,6 +101,8 @@ def processCaptionsCeleb():
             captions_dict[key] = lines
             key += 1
         i += 1
+        if i > MAX_IMAGES:
+            break
     print(" * %d x %d captions found " % (len(captions_dict), len(lines)))
 
     ## build vocab
@@ -341,6 +345,9 @@ else:
             img = img.astype(np.float32)
 
             images_256.append(img)
+
+        if len(images) > MAX_IMAGES:
+            break
     # images = np.array(images)
     # images_256 = np.array(images_256)
     print(" * loading and resizing took %ss" % (time.time()-s))

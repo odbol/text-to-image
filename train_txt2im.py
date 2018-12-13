@@ -173,7 +173,7 @@ def main_train():
                           ["play"] * n +\
                           ["play scattered"] * n
     elif dataset == 'celebA':
-        sample_sentence = ["attractive beard"] * n + \
+        sample_sentence = ["smiling attractive beard"] * n + \
                           ["gray hair rosy cheeks"] * n + \
                           ["Eyeglasses goatee"] * n + \
                           ["Wavy blonde Hair Wearing Lipstick"] * n + \
