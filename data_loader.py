@@ -12,7 +12,7 @@ import subprocess
 
 MAX_IMAGES = 8000
 
-dataset = 'celebA'#'product-logos'#'material-icons' # or '102flowers' or 'instagram'
+dataset = 'freeman'#'celebA'#'product-logos'#'material-icons' # or '102flowers' or 'instagram'
 need_256 = True # set to True for stackGAN
 
 nltk.download('punkt')
@@ -163,6 +163,51 @@ def processCaptionsInstagram():
     return captions_dict, imgs_title_list, maxCaptionsPerImage
 
 
+def processCaptionsFreeman():
+    global img_dir
+    maxCaptionsPerImage = 1
+    img_dir = os.path.join(img_dir, 'mosaic')
+
+    ## load captions
+    captions_dict = {}
+    processed_capts = []
+    key = 0 # this is the index of the image files in imgs_title_list, matched with the key of the captions_dict. make sure you sort so they match.
+    with tl.ops.suppress_stdout():
+        files = sorted(tl.files.load_file_list(path=img_dir, regx='^.+\.txt$'))
+        for i, f in enumerate(files):
+            print f
+            file_dir = os.path.join(img_dir, f)
+            textFile = open(file_dir,'r')
+
+            lines = []
+            for textLine in textFile:
+                if len(lines) >= maxCaptionsPerImage:
+                    break
+
+                line = preprocess_caption(textLine)
+                #print line
+                lines.append(line)
+                processed_capts.append(tl.nlp.process_sentence(line, start_word="<S>", end_word="</S>"))
+            # TODO(tyler): does it have to have 10 lines???
+            assert len(lines) == maxCaptionsPerImage, "Every image must have " + maxCaptionsPerImage + " captions"
+            captions_dict[key] = lines
+            key += 1
+    print(" * %d x %d captions found " % (len(captions_dict), len(lines)))
+
+    ## build vocab
+    if not os.path.isfile(VOC_FIR):
+        _ = tl.nlp.create_vocab(processed_capts, word_counts_output_file=VOC_FIR, min_word_count=1)
+
+
+    ## load images. note that these indexes must match up with the keys of captions_dict: i.e. they should be sorted in the same order.
+    with tl.ops.suppress_stdout():  # get image files list
+        imgs_title_list = sorted(tl.files.load_file_list(path=img_dir, regx='^.+\.jpg$'))
+
+    for i in 0, 1, 7, 34, 60:
+        print "Spot check: %s should match with %s" % (captions_dict[i], imgs_title_list[i])
+
+    return captions_dict, imgs_title_list, maxCaptionsPerImage
+
 def processCaptionsMaterialIcons():
     maxCaptionsPerImage = 2
     caption_dir = os.path.join(cwd, dataset)
@@ -289,6 +334,8 @@ elif dataset == 'product-logos':
     captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsProductLogos()
 elif dataset == 'celebA':
     captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsCeleb()
+elif dataset == 'freeman':
+    captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsFreeman()
 
 
 

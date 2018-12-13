@@ -181,6 +181,15 @@ def main_train():
                           ["young narrow eyes High Cheekbones"] * n + \
                           ["Chubby eyeglasses Bushy Eyebrows"] * n +\
                           ["Big Lips bald 5 o Clock Shadow"] * n
+    elif dataset == 'freeman':
+        sample_sentence = ["sunset"] * n + \
+                          ["san francisco"] * n + \
+                          ["moon"] * n + \
+                          ["animals"] * n + \
+                          ["rustic"] * n + \
+                          ["city"] * n + \
+                          ["california"] * n +\
+                          ["hawaii"] * n
     else:
         raise "No dataset specified"
 
