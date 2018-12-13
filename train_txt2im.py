@@ -172,6 +172,15 @@ def main_train():
                           ["mostly night"] * n + \
                           ["play"] * n +\
                           ["play scattered"] * n
+    elif dataset == 'celebA':
+        sample_sentence = ["attractive beard"] * n + \
+                          ["gray hair rosy cheeks"] * n + \
+                          ["Eyeglasses goatee"] * n + \
+                          ["Wavy blonde Hair Wearing Lipstick"] * n + \
+                          ["Straight brown hair Wearing Lipstick"] * n + \
+                          ["young narrow eyes High Cheekbones"] * n + \
+                          ["Chubby eyeglasses Bushy Eyebrows"] * n +\
+                          ["Big Lips bald 5 o Clock Shadow"] * n
     else:
         raise "No dataset specified"
 

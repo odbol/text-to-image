@@ -10,7 +10,7 @@ from utils import *
 import json
 import subprocess
 
-dataset = 'product-logos'#'material-icons' # or '102flowers' or 'instagram'
+dataset = 'celebA'#'product-logos'#'material-icons' # or '102flowers' or 'instagram'
 need_256 = True # set to True for stackGAN
 
 nltk.download('punkt')
@@ -56,6 +56,58 @@ def processCaptionsFlowers():
     ## load images
     with tl.ops.suppress_stdout():  # get image files list
         imgs_title_list = sorted(tl.files.load_file_list(path=img_dir, regx='^image_[0-9]+\.jpg'))
+
+    return captions_dict, imgs_title_list, maxCaptionsPerImage
+
+
+def processCaptionsCeleb():
+    global img_dir
+    maxCaptionsPerImage = 1
+    caption_dir = os.path.join(img_dir, 'Anno')
+    img_dir = os.path.join(img_dir, 'img_align_celeba')
+
+    ## load captions
+    caption_file = os.path.join(caption_dir, 'list_attr_celeba.txt')
+    attrsFile = open(caption_file, 'r')
+    captions_dict = {}
+    processed_capts = []
+    i = 0
+    lineSplitter = re.compile(r'\s+')
+    headers = []
+
+    key = 0 # this is the index of the image files in imgs_title_list, matched with the key of the captions_dict. make sure you sort so they match.
+    for attrLine in attrsFile:
+        if i == 1:
+            headers = lineSplitter.split(attrLine)
+            headers = [ word.replace('_', ' ').lower() for word in headers]
+        elif i > 1:
+            flags = lineSplitter.split(attrLine.strip())
+            #key = int(row[0][:-4])
+            #print flags
+            sentence = ''
+            curFlagIdx = 0
+            for flag in flags[1:]:
+                if int(flag) > 0:
+                    sentence += headers[curFlagIdx] + ' '
+                curFlagIdx += 1
+
+            lines = []
+            line = preprocess_caption(sentence)
+            lines.append(line)
+            processed_capts.append(tl.nlp.process_sentence(line, start_word="<S>", end_word="</S>"))
+            assert len(lines) == maxCaptionsPerImage, "Every flower image have 10 captions"
+            captions_dict[key] = lines
+            key += 1
+        i += 1
+    print(" * %d x %d captions found " % (len(captions_dict), len(lines)))
+
+    ## build vocab
+    if not os.path.isfile(VOC_FIR):
+        _ = tl.nlp.create_vocab(processed_capts, word_counts_output_file=VOC_FIR, min_word_count=1)
+
+    ## load images
+    with tl.ops.suppress_stdout():  # get image files list
+        imgs_title_list = sorted(tl.files.load_file_list(path=img_dir, regx='^[0-9]+\.jpg'))
 
     return captions_dict, imgs_title_list, maxCaptionsPerImage
 
@@ -231,6 +283,8 @@ elif dataset == 'material-icons':
     captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsMaterialIcons()
 elif dataset == 'product-logos':
     captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsProductLogos()
+elif dataset == 'celebA':
+    captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsCeleb()
 
 
 
