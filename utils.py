@@ -54,7 +54,7 @@ def get_random_int(min=0, max=10, number=5):
 
 def preprocess_caption(line):
     prep_line = re.sub('[%s]' % re.escape(string.punctuation), ' ', line.rstrip())
-    prep_line = prep_line.replace('-', ' ')
+    prep_line = prep_line.replace('-', ' ').lower()
     return prep_line
 
 

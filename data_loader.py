@@ -79,7 +79,7 @@ def processCaptionsCeleb():
     for attrLine in attrsFile:
         if i == 1:
             headers = lineSplitter.split(attrLine)
-            headers = [ word.replace('_', ' ').lower() for word in headers]
+            headers = [ word.replace('_', ' ') for word in headers]
         elif i > 1:
             flags = lineSplitter.split(attrLine.strip())
             #key = int(row[0][:-4])
@@ -134,7 +134,7 @@ def processCaptionsInstagram():
 
                 caption = edge["node"]["text"].encode('utf-8', 'xmlcharrefreplace')
                 #print caption
-                line = preprocess_caption(caption.lower())
+                line = preprocess_caption(caption)
                 #print line
                 lines.append(line)
                 processed_capts.append(tl.nlp.process_sentence(line, start_word="<S>", end_word="</S>"))
@@ -187,7 +187,7 @@ def processCaptionsMaterialIcons():
 
                 caption = orig_file.replace("ic_", "").replace("_", " ")[:-15] # strip off extension, dp, and color
                 #print caption
-                caption_processed = preprocess_caption(caption.lower())
+                caption_processed = preprocess_caption(caption)
                 lines = [caption_processed, category_dir]
                 for line in lines:
                     processed_capts.append(tl.nlp.process_sentence(line, start_word="<S>", end_word="</S>"))
@@ -240,7 +240,7 @@ def processCaptionsProductLogos():
                 caption = svg_file.replace("_", " ")
                 caption = re.sub(extRegExToStrip, '', caption)
                 #print caption
-                caption_processed = preprocess_caption(caption.lower())
+                caption_processed = preprocess_caption(caption)
                 lines = [caption_processed]
                 for line in lines:
                     processed_capts.append(tl.nlp.process_sentence(line, start_word="<S>", end_word="</S>"))
