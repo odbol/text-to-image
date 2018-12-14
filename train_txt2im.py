@@ -186,8 +186,8 @@ def main_train():
                           ["san francisco"] * n + \
                           ["moon"] * n + \
                           ["animals"] * n + \
-                          ["rustic"] * n + \
-                          ["city"] * n + \
+                          ["sunburst over tahoe  reflection  snow  tree  serene   lake tahoe and the sierras"] * n + \
+                          ["moon over san francisco  golden gate bridge  cityscape  city lights  skyline  lights  city  skyscrapers  buildings   san francisco and the california coast  most popular"] * n + \
                           ["california"] * n +\
                           ["hawaii"] * n
     else:
@@ -202,7 +202,7 @@ def main_train():
         # print(sample_sentence[i])
     sample_sentence = tl.prepro.pad_sequences(sample_sentence, padding='post')
 
-    n_epoch = 100 # 600
+    n_epoch = 1000 # 600
     print_freq = 1
     n_batch_epoch = int(n_images_train / batch_size)
     # exit()

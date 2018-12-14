@@ -338,12 +338,22 @@ elif dataset == 'freeman':
     captions_dict, imgs_title_list, maxCaptionsPerImage = processCaptionsFreeman()
 
 
+def flipImage(img_raw):
+    img = tl.prepro.flip_axis(img_raw, axis=1)
+    img = img.astype(np.float32)
+    return img
 
 if not os.path.isfile(VOC_FIR) or not captions_dict: 
     print("ERROR: vocab not generated.")
     exit(1)
 else:
     vocab = tl.nlp.Vocabulary(VOC_FIR, start_word="<S>", end_word="</S>", unk_word="<UNK>")
+
+    # for small datasets, we cheat and flip them horizontally to get TWICE the data!
+    isFlippingEnabled = False
+    if len(imgs_title_list) < 1000:
+        isFlippingEnabled = True
+        print "Not enough images. Generating more by flipping horizontally..."
 
     ## store all captions ids in list
     captions_ids = []
@@ -353,11 +363,15 @@ else:
         tmp = captions_dict.iteritems()
     for key, value in tmp:
         for v in value:
-            captions_ids.append( [vocab.word_to_id(word) for word in nltk.tokenize.word_tokenize(v)] + [vocab.end_id])  # add END_ID
+            caption = [vocab.word_to_id(word) for word in nltk.tokenize.word_tokenize(v)] + [vocab.end_id]
+            captions_ids.append( caption)  # add END_ID
+            if isFlippingEnabled:
+                captions_ids.append( caption)  # add END_ID
             # print(v)              # prominent purple stigma,petals are white inc olor
             # print(captions_ids)   # [[152, 19, 33, 15, 3, 8, 14, 719, 723]]
             # exit()
     captions_ids = np.asarray(captions_ids)
+
     print(" * tokenized %d captions" % len(captions_ids))
 
     ## check
@@ -368,6 +382,7 @@ else:
     img_capt_ids = [vocab.word_to_id(word) for word in nltk.tokenize.word_tokenize(img_capt)]#img_capt.split(' ')]
     print("img_capt_ids: %s" % img_capt_ids)
     print("id_to_word: %s" % [vocab.id_to_word(id) for id in img_capt_ids])
+
 
     print(" * %d images found, start loading and resizing ..." % len(imgs_title_list))
     s = time.time()
@@ -384,14 +399,21 @@ else:
     for name in imgs_title_list:
         # print(name)
         img_raw = scipy.misc.imread( os.path.join(img_dir, name), False, 'RGB' ) #Force to RGB in case we're opening images with transparency
-        img = tl.prepro.imresize(img_raw, size=[64, 64])    # (64, 64, 3)
-        img = img.astype(np.float32)
+        imgResized = tl.prepro.imresize(img_raw, size=[64, 64])    # (64, 64, 3)
+        img = imgResized.astype(np.float32)
         images.append(img)
+
+        if isFlippingEnabled:
+            images.append(flipImage(imgResized))
+
         if need_256:
-            img = tl.prepro.imresize(img_raw, size=[256, 256]) # (256, 256, 3)
-            img = img.astype(np.float32)
+            imgResized = tl.prepro.imresize(img_raw, size=[256, 256]) # (256, 256, 3)
+            img = imgResized.astype(np.float32)
 
             images_256.append(img)
+
+            if isFlippingEnabled:
+                images_256.append(flipImage(imgResized))
 
         if len(images) > MAX_IMAGES:
             break
@@ -399,7 +421,7 @@ else:
     # images_256 = np.array(images_256)
     print(" * loading and resizing took %ss" % (time.time()-s))
 
-    n_images = len(captions_dict)
+    n_images = len(images)
     n_captions = len(captions_ids)
     n_captions_per_image = maxCaptionsPerImage #len(lines) # 10
 
