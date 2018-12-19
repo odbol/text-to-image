@@ -12,7 +12,7 @@ import subprocess
 
 MAX_IMAGES = 8000
 
-dataset = 'freeman'#'celebA'#'product-logos'#'material-icons' # or '102flowers' or 'instagram'
+dataset = '102flowers' # or 'freeman' or 'celebA' or 'product-logos' or 'material-icons' or 'instagram'
 need_256 = True # set to True for stackGAN
 
 nltk.download('punkt')
