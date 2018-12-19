@@ -63,6 +63,9 @@ def processCaptionsFlowers():
 
 
 def processCaptionsCeleb():
+    """Uses the celebA dataset.
+        Download here: http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
+    """
     global img_dir
     maxCaptionsPerImage = 1
     caption_dir = os.path.join(img_dir, 'Anno')
@@ -116,6 +119,9 @@ def processCaptionsCeleb():
     return captions_dict, imgs_title_list, maxCaptionsPerImage
 
 def processCaptionsInstagram():
+    """Generate from instagram photos.
+        Use InstaLooter to download the photos from your profile: https://github.com/althonos/InstaLooter
+    """
     maxCaptionsPerImage = 1
     caption_dir = os.path.join(cwd, dataset)
 
@@ -164,6 +170,9 @@ def processCaptionsInstagram():
 
 
 def processCaptionsFreeman():
+    """Generate from landscape and nature photography from http://freemanphotography.com
+        Run `python3 freemanphoto-scraper.py --num_pages 21 --genre mosaic --output_dir freeman` to download the photos.
+    """
     global img_dir
     maxCaptionsPerImage = 1
     img_dir = os.path.join(img_dir, 'mosaic')
@@ -209,6 +218,11 @@ def processCaptionsFreeman():
     return captions_dict, imgs_title_list, maxCaptionsPerImage
 
 def processCaptionsMaterialIcons():
+    """ Generate from Google's Material Icons.
+        Run `git submodule update` to download from https://github.com/google/material-design-icons.git
+
+        Requires ImageMagick: `sudo apt-get install imagemagick`
+    """
     maxCaptionsPerImage = 2
     caption_dir = os.path.join(cwd, dataset)
 
